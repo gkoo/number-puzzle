@@ -82,32 +82,8 @@ class Puzzle
   private
 
   def do_processing(cell_list, clue_list)
-    process_cell_list(cell_list, clue_list)
     fill_perfect_fit(cell_list, clue_list)
     general2(cell_list, clue_list)
-  end
-
-  def process_cell_list(cell_list, clue_list)
-    # If all cells are completed, don't need to do anything
-    return if cell_list.all? { |cell| cell.completed? }
-
-    if clue_list.length == 1
-      clue = clue_list.first
-      if clue > (cell_list.length / 2)
-        fill_majority_middle(cell_list, clue)
-      end
-    end
-  end
-
-  def fill_majority_middle(cell_list, majority_size)
-    # If there's only one clue in the clue group which indicates that the majority of the cells in
-    # a row or column are filled, then fill in the middle.
-    list_length = cell_list.length
-    num_cells_to_fill_in = ((majority_size / 2 * 2) - (list_length / 2)) * 2
-    to_leave_blank_size = (list_length - num_cells_to_fill_in) / 2
-    start_idx = to_leave_blank_size
-    end_idx = to_leave_blank_size + num_cells_to_fill_in - 1
-    cell_list[start_idx..end_idx].each { |cell| cell.fill_in }
   end
 
   def fill_perfect_fit(cell_list, clue_list)
@@ -135,15 +111,12 @@ class Puzzle
     # The upper bound for the first cell
     upper_bound = cell_list.length - following_sequences_length - first_clue
 
-    puts "===================="
-    puts "clue_list: #{clue_list.join(', ')}\nclue: #{first_clue}"
-    puts "lower_bound: #{lower_bound}, upper_bound: #{upper_bound}"
     lowest_start = lower_bound
-    lowest_end = lower_bound + first_clue
+    lowest_end = lower_bound + first_clue - 1
 
     highest_start = nil
     (lower_bound..upper_bound).each do |i|
-      if clue_fits_in_cell_list_at_position?(first_clue, cell_list, i)
+      if first_clue_fits_in_cell_list_at_position?(first_clue, cell_list, i)
         highest_start = i
       else
         break
@@ -177,7 +150,7 @@ class Puzzle
     result
   end
 
-  def clue_fits_in_cell_list_at_position?(clue, cell_list, position)
+  def first_clue_fits_in_cell_list_at_position?(clue, cell_list, position)
     (position..position+clue-1).all? { |i| !cell_list[i].completed? || cell_list[i].filled }
   end
 end
