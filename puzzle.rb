@@ -72,11 +72,11 @@ class Puzzle
       do_processing(column_cells, clue_list)
     end
 
-    #grid_height.times do |row_number|
-      #row_cells = get_cell_list_by_row(row_number)
-      #clue_list = row_clues[row_number]
-      #do_processing(row_cells, clue_list)
-    #end
+    grid_height.times do |row_number|
+      row_cells = get_cell_list_by_row(row_number)
+      clue_list = row_clues[row_number]
+      do_processing(row_cells, clue_list)
+    end
   end
 
   private
@@ -150,7 +150,7 @@ class Puzzle
       end
     end
 
-    highest_end = highest_start + first_clue
+    highest_end = highest_start + first_clue - 1
 
     lowest_range = (lowest_start..lowest_end)
     highest_range = (highest_start..highest_end)
@@ -178,7 +178,7 @@ class Puzzle
   end
 
   def clue_fits_in_cell_list_at_position?(clue, cell_list, position)
-    (position..position+clue-1).all? { |i| !cell_list[i].completed? }
+    (position..position+clue-1).all? { |i| !cell_list[i].completed? || cell_list[i].filled }
   end
 end
 
