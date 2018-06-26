@@ -72,11 +72,11 @@ class Puzzle
       do_processing(column_cells, clue_list)
     end
 
-    grid_height.times do |row_number|
-      row_cells = get_cell_list_by_row(row_number)
-      clue_list = row_clues[row_number]
-      do_processing(row_cells, clue_list)
-    end
+    #grid_height.times do |row_number|
+      #row_cells = get_cell_list_by_row(row_number)
+      #clue_list = row_clues[row_number]
+      #do_processing(row_cells, clue_list)
+    #end
   end
 
   private
@@ -84,9 +84,11 @@ class Puzzle
   def do_processing(cell_list, clue_list)
     process_cell_list(cell_list, clue_list)
     fill_perfect_fit(cell_list, clue_list)
+    general2(cell_list, clue_list)
   end
 
   def process_cell_list(cell_list, clue_list)
+    # If all cells are completed, don't need to do anything
     return if cell_list.all? { |cell| cell.completed? }
 
     if clue_list.length == 1
@@ -98,7 +100,7 @@ class Puzzle
   end
 
   def fill_majority_middle(cell_list, majority_size)
-    # if there's only one clue in the clue group which indicates that the majority of the cells in
+    # If there's only one clue in the clue group which indicates that the majority of the cells in
     # a row or column are filled, then fill in the middle.
     list_length = cell_list.length
     num_cells_to_fill_in = ((majority_size / 2 * 2) - (list_length / 2)) * 2
@@ -125,6 +127,40 @@ class Puzzle
     end
   end
 
+  def general2(cell_list, clue_list)
+    first_clue = clue_list.first
+    num_gaps = clue_list.length - 1
+    following_sequences_length = clue_list[1..clue_list.length-1].reduce(:+) || 0
+    lower_bound = 0
+    # The upper bound for the first cell
+    upper_bound = cell_list.length - following_sequences_length - first_clue
+
+    puts "===================="
+    puts "clue_list: #{clue_list.join(', ')}\nclue: #{first_clue}"
+    puts "lower_bound: #{lower_bound}, upper_bound: #{upper_bound}"
+    lowest_start = lower_bound
+    lowest_end = lower_bound + first_clue
+
+    highest_start = nil
+    (lower_bound..upper_bound).each do |i|
+      if clue_fits_in_cell_list_at_position?(first_clue, cell_list, i)
+        highest_start = i
+      else
+        break
+      end
+    end
+
+    highest_end = highest_start + first_clue
+
+    lowest_range = (lowest_start..lowest_end)
+    highest_range = (highest_start..highest_end)
+
+    # fill in the cells that appear in both lowest and highest options
+    (lowest_start..highest_end).each do |i|
+      cell_list[i].fill_in if lowest_range.include?(i) && highest_range.include?(i)
+    end
+  end
+
   def get_cell_list_by_column(col_num)
     result = []
     grid_height.times do |row_num|
@@ -139,6 +175,10 @@ class Puzzle
       result << grid[[row_num, col_num]]
     end
     result
+  end
+
+  def clue_fits_in_cell_list_at_position?(clue, cell_list, position)
+    (position..position+clue-1).all? { |i| !cell_list[i].completed? }
   end
 end
 
